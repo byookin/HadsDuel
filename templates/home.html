@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HadsDuel - Home</title>
+</head>
+<body>
+    <h1>Welcome to HadsDuel</h1>
+    <ul>
+        <li><a href="{{ url_for('create_room') }}">Create a Room</a></li>
+        <li><a href="{{ url_for('join_room') }}">Join a Room</a></li>
+        <li><a href="{{ url_for('leaderboard') }}">Leaderboards</a></li>
+        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+        <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+    </ul>
+</body>
+</html>

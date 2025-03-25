@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Room</title>
+</head>
+<body>
+    <h1>Room ID: {{ room_id }}</h1>
+    <h2>Players:</h2>
+    <ul>
+        {% for player in players %}
+        <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+    <p>Share this Room ID with your friend to join.</p>
+</body>
+</html>
