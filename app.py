@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask_bcrypt import Bcrypt
-from forms import RegistrationForm, LoginForm  # ایمپورت فرم لاگین و ثبت‌نام
+from forms import RegistrationForm, LoginForm
 import random
 import string
 import config
@@ -24,7 +24,6 @@ login_manager.login_view = "login"
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# مدل کاربر
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -52,70 +51,27 @@ def home():
         return render_template("home.html")
     return redirect(url_for('login'))
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        name = form.name.data
-        age = form.age.data
-        country = form.country.data
-
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash("Username already exists. Choose another.", "danger")
-            return redirect(url_for("register"))
-
-        new_user = User(
-            username=username,
-            name=name,
-            age=int(age),
-            country=country
-        )
-        new_user.set_password(password)
-
-        db.session.add(new_user)
-        db.session.commit()
-        flash("Registration successful! You can now log in.", "success")  # پیام موفقیت ثبت‌نام
-        return redirect(url_for('login'))
-
-    return render_template('register.html', form=form)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        user = User.query.filter_by(username=username).first()
-
-        if user and user.check_password(password):
-            login_user(user)
-            flash("Login successful!", "success")
-            return redirect(url_for('home'))
-        else:
-            flash("Invalid username or password.", "danger")
-
-    return render_template('login.html', form=form)
-
-@app.route('/logout')
+@app.route('/leaderboard')
 @login_required
-def logout():
-    logout_user()
-    flash("You have been logged out.", "info")
-    return redirect(url_for('login'))
+def leaderboard():
+    users = User.query.order_by(User.score.desc()).all()
+    return render_template("leaderboard.html", users=users)
 
 @app.route('/create-room')
 @login_required
 def create_room():
     room_id = generate_room_id()
-    rooms[room_id] = {"players": [current_user.username], "status": "waiting"}
+    rooms[room_id] = {
+        "players": [current_user.username], 
+        "status": "waiting",
+        "target_number": random.randint(1, 100),
+        "attempts": {}
+    }
     return render_template("room.html", room_id=room_id, players=rooms[room_id]["players"])
 
 @app.route('/join-room', methods=['GET', 'POST'])
 @login_required
-def join_room_page():
+def join_room_view():
     if request.method == "POST":
         room_id = request.form.get("room_id")
         if room_id in rooms and len(rooms[room_id]["players"]) < 2:
@@ -124,19 +80,19 @@ def join_room_page():
         flash("Invalid room ID or room is full.", "danger")
     return render_template("join_room.html")
 
-@app.route('/room/<room_id>')
-@login_required
-def room(room_id):
-    if room_id in rooms:
-        return render_template("room.html", room_id=room_id, players=rooms[room_id]["players"])
-    return "Room not found", 404
-
 @socketio.on("join_room")
 def handle_join_room(data):
     room_id = data["room"]
     username = data["username"]
+
     if room_id in rooms:
+        if username not in rooms[room_id]["players"]:
+            rooms[room_id]["players"].append(username)
         join_room(room_id)
+        
+        print(f"📢 {username} joined room {room_id}")
+        print(f"👥 Current players: {rooms[room_id]['players']}")
+        
         emit("update_players", {"players": rooms[room_id]["players"]}, room=room_id)
 
 @socketio.on("send_message")
@@ -146,32 +102,39 @@ def handle_send_message(data):
     message = data["message"]
 
     if room_id in rooms:
+        print(f"📩 Message from {username}: {message}")
         emit("receive_message", {"username": username, "message": message}, room=room_id)
 
-@socketio.on("start_game")
-def handle_start_game(data):
-    room_id = data["room"]
-    if room_id in rooms:
-        emit("game_started", room=room_id)
-
-@app.route('/game/<room_id>')
+@app.route('/room/<room_id>')
 @login_required
-def game(room_id):
+def room(room_id):
     if room_id in rooms:
-        return render_template("game.html", room_id=room_id, players=rooms[room_id]["players"])
+        return render_template("room.html", room_id=room_id, players=rooms[room_id]["players"])
     return "Room not found", 404
 
-@app.route('/leaderboard')
-@login_required
-def leaderboard():
-    users = User.query.order_by(User.score.desc()).all()
-    return render_template("leaderboard.html", users=users)
+@socketio.on("guess_number")
+def handle_guess_number(data):
+    room_id = data["room"]
+    username = data["username"]
+    guess = int(data["guess"])
 
-@app.route('/profile')
-@login_required
-def profile():
-    return render_template("profile.html", user=current_user)
+    if room_id not in rooms:
+        return
 
+    target = rooms[room_id]["target_number"]
+
+    if guess == target:
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.score += 10
+            db.session.commit()
+
+        emit("game_winner", {"winner": username}, room=room_id, broadcast=True)
+        del rooms[room_id]
+    elif guess < target:
+        emit("guess_feedback", {"username": username, "feedback": "بزرگ‌تر حدس بزن!"}, room=room_id, broadcast=True)
+    else:
+        emit("guess_feedback", {"username": username, "feedback": "کوچک‌تر حدس بزن!"}, room=room_id, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
