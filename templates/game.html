@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game - Room {{ room_id }}</title>
+</head>
+<body>
+    <h1>Game Started in Room: {{ room_id }}</h1>
+    <h2>Players:</h2>
+    <ul>
+        {% for player in players %}
+        <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+
+    <p>Game logic will be added soon...</p>
+</body>
+</html>

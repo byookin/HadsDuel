@@ -3,15 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <title>Game Room</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
     <h1>Room ID: {{ room_id }}</h1>
+    
     <h2>Players:</h2>
-    <ul>
+    <ul id="players-list">
         {% for player in players %}
         <li>{{ player }}</li>
         {% endfor %}
     </ul>
-    <p>Share this Room ID with your friend to join.</p>
+
+    <button id="start-game" disabled onclick="startGame()">Start Game</button>
+
+    <h2>Chat</h2>
+    <div id="chat-box"></div>
+    <input type="text" id="chat-input" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        var socket = io();
+        var room_id = "{{ room_id }}";
+        var username = "{{ current_user.username }}";
+
+        socket.emit("join_room", {"room": room_id, "username": username});
+
+        socket.on("update_players", function(data) {
+            let playersList = document.getElementById("players-list");
+            playersList.innerHTML = "";
+            data.players.forEach(player => {
+                let li = document.createElement("li");
+                li.textContent = player;
+                playersList.appendChild(li);
+            });
+
+            // فعال کردن دکمه استارت اگر ۲ بازیکن داخل روم باشن
+            document.getElementById("start-game").disabled = (data.players.length < 2);
+        });
+
+        function sendMessage() {
+            let message = document.getElementById("chat-input").value;
+            socket.emit("send_message", {"room": room_id, "username": username, "message": message});
+            document.getElementById("chat-input").value = "";
+        }
+
+        socket.on("receive_message", function(data) {
+            let chatBox = document.getElementById("chat-box");
+            let p = document.createElement("p");
+            p.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            chatBox.appendChild(p);
+        });
+
+        function startGame() {
+            socket.emit("start_game", {"room": room_id});
+        }
+
+        socket.on("game_started", function() {
+            window.location.href = `/game/${room_id}`;
+        });
+    </script>
 </body>
 </html>
