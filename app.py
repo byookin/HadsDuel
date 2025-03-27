@@ -39,7 +39,6 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
 
-# ذخیره اطلاعات روم‌ها
 rooms = {}
 
 def generate_room_id():
@@ -57,12 +56,7 @@ def register():
         return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            name=form.name.data,
-            age=form.age.data,
-            country=form.country.data
-        )
+        user = User(username=form.username.data, name=form.name.data, age=form.age.data, country=form.country.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -108,10 +102,13 @@ def leaderboard():
 def create_room():
     room_id = generate_room_id()
     rooms[room_id] = {
-        "players": [current_user.username], 
+        "players": [current_user.username],
         "status": "waiting",
         "target_number": random.randint(1, 100),
-        "attempts": {}
+        "attempts": [],
+        "current_turn": None,
+        "timer": 15,
+        "chat_history": []
     }
     return redirect(url_for('room', room_id=room_id))
 
@@ -137,7 +134,10 @@ def room(room_id):
 @login_required
 def game(room_id):
     if room_id in rooms:
-        return render_template("game.html", room_id=room_id, players=rooms[room_id]["players"])
+        if rooms[room_id]["status"] == "playing" and rooms[room_id]["current_turn"] is None:
+            rooms[room_id]["current_turn"] = rooms[room_id]["players"][0]
+            socketio.emit("game_started", {"turn": rooms[room_id]["current_turn"], "room": room_id}, room=room_id)
+        return render_template("game.html", room_id=room_id, players=rooms[room_id]["players"], current_turn=rooms[room_id]["current_turn"], chat_history=rooms[room_id]["chat_history"], username=current_user.username)
     return "Room not found", 404
 
 @socketio.on("join_room")
@@ -149,6 +149,7 @@ def handle_join_room(data):
             rooms[room_id]["players"].append(username)
         join_room(room_id)
         emit("update_players", {"players": rooms[room_id]["players"]}, room=room_id)
+        emit("update_chat", {"chat_history": rooms[room_id]["chat_history"]}, room=room_id)
 
 @socketio.on("send_message")
 def handle_send_message(data):
@@ -156,34 +157,81 @@ def handle_send_message(data):
     username = data["username"]
     message = data["message"]
     if room_id in rooms:
-        emit("receive_message", {"username": username, "message": message}, room=room_id)
+        rooms[room_id]["chat_history"].append({"username": username, "message": message})
+        emit("receive_message", {"username": username, "message": message}, room=room_id, broadcast=True)
 
 @socketio.on("start_game")
 def handle_start_game(data):
     room_id = data["room"]
     if room_id in rooms and len(rooms[room_id]["players"]) == 2:
         rooms[room_id]["status"] = "playing"
-        emit("game_started", room=room_id, broadcast=True)
+        rooms[room_id]["current_turn"] = rooms[room_id]["players"][0]
+        emit("game_started", {"turn": rooms[room_id]["current_turn"], "room": room_id}, room=room_id, broadcast=True)
 
 @socketio.on("guess_number")
 def handle_guess_number(data):
     room_id = data["room"]
     username = data["username"]
     guess = int(data["guess"])
-    if room_id not in rooms:
+    if room_id not in rooms or rooms[room_id]["current_turn"] != username:
         return
     target = rooms[room_id]["target_number"]
-    if guess == target:
-        user = User.query.filter_by(username=username).first()
-        if user:
-            user.score += 10
+    if guess == -1:  # تایمر تموم شده
+        next_turn = [p for p in rooms[room_id]["players"] if p != username][0]
+        rooms[room_id]["current_turn"] = next_turn
+        emit("update_turn", {"turn": next_turn}, room=room_id, broadcast=True)
+        socketio.emit("start_timer", {"turn": next_turn, "room": room_id}, room=room_id)
+        return
+    if guess not in rooms[room_id]["attempts"]:
+        rooms[room_id]["attempts"].append(guess)
+        if guess == target:
+            winner = User.query.filter_by(username=username).first()
+            loser_username = [p for p in rooms[room_id]["players"] if p != username][0]
+            loser = User.query.filter_by(username=loser_username).first()
+            # ذخیره امتیازهای قبلی
+            winner_old_score = winner.score
+            loser_old_score = loser.score
+            # آپدیت امتیازها
+            winner.score += 3  # برنده ۳ امتیاز می‌گیره
+            loser.score -= 1   # بازنده ۱ امتیاز از دست می‌ده
             db.session.commit()
-        emit("game_winner", {"winner": username}, room=room_id, broadcast=True)
+            emit("game_winner", {"winner": username, "guess": guess}, room=room_id, broadcast=True)
+            # اطلاعات برنده و بازنده رو همراه با امتیازهای قبلی و جدید بفرست
+            socketio.emit("redirect", {
+                "url": url_for("result", room_id=room_id, winner=username, loser=loser_username,
+                               winner_old_score=str(winner_old_score), winner_new_score=str(winner.score),
+                               loser_old_score=str(loser_old_score), loser_new_score=str(loser.score))
+            }, room=room_id)
+        else:
+            feedback = "larger" if guess > target else "smaller"
+            emit("guess_feedback", {"username": username, "guess": guess, "feedback": feedback}, room=room_id, broadcast=True)
+            next_turn = [p for p in rooms[room_id]["players"] if p != username][0]
+            rooms[room_id]["current_turn"] = next_turn
+            emit("update_turn", {"turn": next_turn}, room=room_id, broadcast=True)
+            socketio.emit("start_timer", {"turn": next_turn, "room": room_id}, room=room_id)
+
+@app.route('/result/<room_id>/<winner>/<loser>/<winner_old_score>/<winner_new_score>/<loser_old_score>/<loser_new_score>')
+@login_required
+def result(room_id, winner, loser, winner_old_score, winner_new_score, loser_old_score, loser_new_score):
+    winner_user = User.query.filter_by(username=winner).first()
+    loser_user = User.query.filter_by(username=loser).first()
+    if not winner_user or not loser_user:
+        flash("Error: Could not load game results.", "danger")
+        return redirect(url_for('home'))
+    if room_id in rooms:
         del rooms[room_id]
-    elif guess < target:
-        emit("guess_feedback", {"username": username, "feedback": "بزرگ‌تر حدس بزن!"}, room=room_id, broadcast=True)
-    else:
-        emit("guess_feedback", {"username": username, "feedback": "کوچک‌تر حدس بزن!"}, room=room_id, broadcast=True)
+    # تبدیل مقادیر به عدد
+    try:
+        winner_old_score = int(winner_old_score)
+        winner_new_score = int(winner_new_score)
+        loser_old_score = int(loser_old_score)
+        loser_new_score = int(loser_new_score)
+    except ValueError:
+        flash("Error: Invalid score values.", "danger")
+        return redirect(url_for('home'))
+    return render_template("result.html", winner=winner_user, loser=loser_user,
+                          winner_old_score=winner_old_score, winner_new_score=winner_new_score,
+                          loser_old_score=loser_old_score, loser_new_score=loser_new_score)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

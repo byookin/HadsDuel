@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        .winner, .loser {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .winner {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .loser {
+            background-color: #f44336;
+            color: white;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #008CBA;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #005f6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Over!</h1>
+        <div class="winner">
+            <h2>Winner: {{ winner.username }}</h2>
+            <p>Previous Score: {{ winner_old_score }}</p>
+            <p>New Score: {{ winner_new_score }}</p>
+        </div>
+        <div class="loser">
+            <h2>Loser: {{ loser.username }}</h2>
+            <p>Previous Score: {{ loser_old_score }}</p>
+            <p>New Score: {{ loser_new_score }}</p>
+        </div>
+        <a href="{{ url_for('home') }}" class="button">Back to Home</a>
+        <a href="{{ url_for('create_room') }}" class="button">Create New Room</a>
+    </div>
+</body>
+</html>

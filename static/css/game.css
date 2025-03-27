@@ -1,0 +1,83 @@
+#players {
+    text-align: center;
+}
+.player-container {
+    display: inline-block;
+    margin: 0 20px;
+}
+.username {
+    display: inline-block;
+    font-size: 24px;
+}
+.timer {
+    font-size: 18px;
+    vertical-align: middle;
+    color: red;
+}
+.blink {
+    animation: blink 1s infinite;
+}
+@keyframes blink {
+    50% { opacity: 0; }
+}
+#game-board {
+    text-align: center;
+    margin: 20px 0;
+}
+.number {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+.correct {
+    background-color: green !important;
+    color: white !important;
+}
+.smaller {
+    background-color: orange !important;
+    color: white !important;
+}
+.larger {
+    background-color: yellow !important;
+    color: black !important;
+}
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+#legend {
+    text-align: center;
+    margin: 20px 0;
+}
+#legend span {
+    padding: 5px 10px;
+    margin: 0 10px;
+}
+#legend .correct {
+    background-color: green;
+    color: white;
+}
+#legend .smaller {
+    background-color: orange;
+    color: white;
+}
+#legend .larger {
+    background-color: yellow;
+    color: black;
+}
+#chat {
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    width: 200px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+#chat-box {
+    height: 200px;
+    overflow-y: auto;
+}
