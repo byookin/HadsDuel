@@ -91,6 +91,44 @@ def logout():
 def profile():
     return render_template('profile.html', user=current_user)
 
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    name = request.form.get('name')
+    age = request.form.get('age')
+    country = request.form.get('country')
+
+    # اعتبارسنجی
+    if not name or not age or not country:
+        flash('لطفاً همه فیلدها را پر کنید.', 'danger')
+        return redirect(url_for('profile'))
+
+    try:
+        age = int(age)
+        if age < 0:
+            flash('سن نمی‌تواند منفی باشد.', 'danger')
+            return redirect(url_for('profile'))
+    except ValueError:
+        flash('سن باید یک عدد معتبر باشد.', 'danger')
+        return redirect(url_for('profile'))
+
+    # آپدیت اطلاعات کاربر
+    current_user.name = name
+    current_user.age = age
+    current_user.country = country
+    db.session.commit()
+
+    flash('اطلاعات با موفقیت ذخیره شد!', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/reset_score')
+@login_required
+def reset_score():
+    current_user.score = 0
+    db.session.commit()
+    flash('امتیازات شما با موفقیت پاک شد!', 'success')
+    return redirect(url_for('profile'))
+
 @app.route('/leaderboard')
 @login_required
 def leaderboard():

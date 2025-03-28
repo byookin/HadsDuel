@@ -1,11 +1,130 @@
-<form method="POST">
-    {{ form.hidden_tag() }}
-    <p>{{ form.username.label }} {{ form.username }}</p>
-    <p>{{ form.password.label }} {{ form.password }}</p>
-    <p>{{ form.confirm_password.label }} {{ form.confirm_password }}</p>
-    <p>{{ form.name.label }} {{ form.name }}</p>
-    <p>{{ form.age.label }} {{ form.age }}</p>
-    <p>{{ form.country.label }} {{ form.country }}</p>
-    <p>{{ form.submit }}</p>
-</form>
-<a href="{{ url_for('login') }}">Already have an account? Login</a>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1400, initial-scale=1.0, user-scalable=yes, minimum-scale=0.1, maximum-scale=3.0">
+    <title>ثبت‌نام</title>
+    <link href="https://cdn.jsdelivr.net/npm/vazir-font@28.0.0/dist/font-face.css" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            background-color: #B0E0E6;
+            color: #1C39BB;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl;
+            overflow: auto;
+        }
+
+        .main-container {
+            width: 1400px;
+            height: 1200px;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* برای وسط‌چین کردن عمودی */
+            box-sizing: border-box;
+        }
+
+        form {
+            background-color: #87CEFA;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 139, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: slideDown 1s ease-out;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+
+        label {
+            color: #1C39BB;
+            margin-left: 10px;
+        }
+
+        input[type="text"], input[type="password"] {
+            padding: 12px;
+            font-family: 'Vazir', sans-serif;
+            border: 2px solid #008BFF;
+            border-radius: 10px;
+            width: 250px;
+            background-color: #FFFFFF;
+            color: #1C39BB;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #1E90FF;
+            box-shadow: 0 0 8px rgba(30, 144, 255, 0.5);
+            outline: none;
+        }
+
+        input[type="submit"] {
+            background-color: #008BFF;
+            color: #FFFFFF;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Vazir', sans-serif;
+            font-size: 1.1em;
+            transition: background-color 0.3s, transform 0.2s;
+            animation: pulse 2s infinite;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #1E90FF;
+            transform: scale(1.05);
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #008BFF;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #1E90FF;
+        }
+
+        @keyframes slideDown {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(30, 144, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <p>{{ form.username.label }} {{ form.username }}</p>
+            <p>{{ form.password.label }} {{ form.password }}</p>
+            <p>{{ form.confirm_password.label }} {{ form.confirm_password }}</p>
+            <p>{{ form.name.label }} {{ form.name }}</p>
+            <p>{{ form.age.label }} {{ form.age }}</p>
+            <p>{{ form.country.label }} {{ form.country }}</p>
+            <p>{{ form.submit }}</p>
+            <a href="{{ url_for('login') }}">حساب دارید؟ وارد شوید</a>
+        </form>
+    </div>
+</body>
+</html>

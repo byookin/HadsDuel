@@ -1,18 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HadsDuel - Home</title>
+    <meta name="viewport" content="width=1400, initial-scale=1.0, user-scalable=yes, minimum-scale=0.1, maximum-scale=3.0">
+    <title>حدس‌دویل - صفحه اصلی</title>
+    <link href="https://cdn.jsdelivr.net/npm/vazir-font@28.0.0/dist/font-face.css" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            font-family: 'Vazir', sans-serif;
+            background-color: #B0E0E6;
+            color: #1C39BB;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            direction: rtl;
+            overflow: auto;
+        }
+
+        .main-container {
+            width: 1400px;
+            height: 1200px;
+            position: relative;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* برای وسط‌چین کردن عمودی */
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #1E90FF;
+            text-shadow: 0 0 10px rgba(30, 144, 255, 0.3);
+            margin-bottom: 30px;
+            animation: bounceIn 1s ease-out;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        li {
+            background-color: #87CEFA;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 139, 255, 0.2);
+            animation: slideIn 0.5s ease-out forwards;
+            animation-delay: calc(0.1s * var(--i));
+        }
+
+        li a {
+            display: block;
+            padding: 15px 30px;
+            color: #1C39BB;
+            text-decoration: none;
+            font-size: 1.2em;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        li a:hover {
+            background-color: #008BFF;
+            color: #FFFFFF;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(50px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to HadsDuel</h1>
-    <ul>
-        <li><a href="{{ url_for('create_room') }}">Create a Room</a></li>
-        <li><a href="{{ url_for('join_room_view') }}">Join a Room</a></li>
-        <li><a href="{{ url_for('leaderboard') }}">Leaderboards</a></li>
-        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-        <li><a href="{{ url_for('logout') }}">Log Out</a></li>
-    </ul>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'926f987aec4853c7',t:'MTc0MzA4NTkzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <div class="main-container">
+        <h1>به دوئل حدس خوش آمدید</h1>
+        <ul>
+            <li style="--i: 1;"><a href="{{ url_for('create_room') }}">ایجاد اتاق</a></li>
+            <li style="--i: 2;"><a href="{{ url_for('join_room_view') }}">پیوستن به اتاق</a></li>
+            <li style="--i: 3;"><a href="{{ url_for('leaderboard') }}">جدول امتیازات</a></li>
+            <li style="--i: 4;"><a href="{{ url_for('profile') }}">پروفایل من</a></li>
+            <li style="--i: 5;"><a href="{{ url_for('logout') }}">خروج</a></li>
+        </ul>
+    </div>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'926f987aec4853c7',t:'MTc0MzA4NTkzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9272455bfc3a6db3',t:'MTc0MzExMzk4My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
